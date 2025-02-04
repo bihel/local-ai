@@ -1,6 +1,10 @@
-﻿import { useState, useEffect } from "react"
+﻿﻿import { useState, useEffect } from "react"
 
-export default function ModelDropdown() {
+interface ModelDropdownProps {
+    onModelSelect: (model: string) => void;
+}
+
+export default function ModelDropdown({ onModelSelect }: ModelDropdownProps) {
     const [selectedModel, setSelectedModel] = useState<string | null>(null)
     const [models, setModels] = useState<string[]>([])
     const [loading, setLoading] = useState(true)
@@ -11,6 +15,11 @@ export default function ModelDropdown() {
             try {
                 const modelList = await getOllamaModels()
                 setModels(modelList)
+                // Set the first model as default if available
+                if (modelList.length > 0) {
+                    setSelectedModel(modelList[0])
+                    onModelSelect(modelList[0])
+                }
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Failed to fetch models')
             } finally {
@@ -19,18 +28,23 @@ export default function ModelDropdown() {
         }
 
         fetchModels()
-    }, [])
+    }, []) // Only run once when component mounts
 
     if (loading) return <div className="my-2">Loading models...</div>
     if (error) return <div className="my-2 text-red-500">Error: {error}</div>
     if (models.length === 0) return <div className="my-2">No models available</div>
+
+    const handleModelChange = (value: string) => {
+        setSelectedModel(value)
+        onModelSelect(value)
+    }
 
     return (
         <div className="my-2">
             <select
                 className="bg-gray-800 text-white rounded-lg p-2 border border-gray-600"
                 value={selectedModel ?? ''}
-                onChange={(e) => setSelectedModel(e.target.value)}
+                onChange={(e) => handleModelChange(e.target.value)}
             >
                 <option value="">Select a model</option>
                 {models.sort().map((model, index) => (
@@ -43,7 +57,6 @@ export default function ModelDropdown() {
 
 interface OllamaModel {
     name: string;
-    // Adding other potential fields that might come back from the API
     modified_at: string;
     size: number;
     digest: string;

@@ -10,6 +10,7 @@ import ModelDropdown from "./components/ModelDropdown";
 function App() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
+  const [selectedModel, setSelectedModel] = useState<string>("deepseek-r1:14b")
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -37,12 +38,16 @@ function App() {
     setInput("")
 
     try {
-      const response = await fetch("http://localhost:3000/chat-stream", {
+      const response = await fetch("http://localhost:11434/api/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: trimmed }),
+        body: JSON.stringify({
+          model: selectedModel,
+          prompt: trimmed,
+          stream: true
+        }),
       })
 
       const reader = response.body?.getReader()
@@ -58,26 +63,28 @@ function App() {
         const { done, value } = await reader.read()
         if (done) break
         const chunk = decoder.decode(value, { stream: true })
-
-        if (!chunk.startsWith("data: {")) continue
-
-        const data = JsonTryParse<ChatCompletionChunk>(chunk.slice(5))
-        if (!data) continue
-
-        const contents = data.choices
-          .map(choice => choice.delta.content)
-          .join("")
-        streamedText += contents
-
-        setMessages(prev => {
-          const updated = [...prev]
-          updated[updated.length - 1] = {
-            role: "bot",
-            content: streamedText,
-            loading: false,
+        const lines = chunk.split('\n').filter(line => line.trim())
+        
+        for (const line of lines) {
+          try {
+            const data = JSON.parse(line)
+            if (data.response) {
+              streamedText += data.response
+              setMessages(prev => {
+                const updated = [...prev]
+                updated[updated.length - 1] = {
+                  role: "bot",
+                  content: streamedText,
+                  loading: false,
+                }
+                return updated
+              })
+            }
+          } catch (parseError) {
+            console.error("Failed to parse chunk:", line)
+            continue
           }
-          return updated
-        })
+        }
       }
     } catch (error: any) {
       setMessages(prev => [
@@ -93,13 +100,17 @@ function App() {
     }
   }
 
+  const handleModelChange = (model: string) => {
+    setSelectedModel(model)
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center p-6">
       <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-8">
         LLM Chat
       </h1>
       <div>
-        <ModelDropdown/>
+        <ModelDropdown onModelSelect={handleModelChange} />
       </div>
       <div className="w-full max-w-7xl bg-gray-900 rounded-3xl shadow-2xl p-6 flex flex-col">
         <div className="flex-grow overflow-y-auto space-y-4 mb-6 pr-4 max-h-[80vh]">
