@@ -1,9 +1,11 @@
 // src/App.tsx
-import React, { useState, useRef, useEffect } from "react"
-import { ChatCompletionChunk, Message } from "../models"
+import type React from "react";
+import { useState, useRef, useEffect } from "react"
+import type { ChatCompletionChunk, Message } from "../models"
 import LoadingChat from "./components/LoadingChat"
 import BotContent from "./components/BotContent"
 import MarkdownRenderer from "./components/MarkdownRenderer"
+import ModelDropdown from "./components/ModelDropdown";
 
 function App() {
   const [messages, setMessages] = useState<Message[]>([])
@@ -51,6 +53,7 @@ function App() {
       const decoder = new TextDecoder()
       let streamedText = ""
 
+      // eslint-disable-next-line no-constant-condition
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
@@ -95,6 +98,9 @@ function App() {
       <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-8">
         LLM Chat
       </h1>
+      <div>
+        <ModelDropdown/>
+      </div>
       <div className="w-full max-w-7xl bg-gray-900 rounded-3xl shadow-2xl p-6 flex flex-col">
         <div className="flex-grow overflow-y-auto space-y-4 mb-6 pr-4 max-h-[80vh]">
           {messages.map((msg, index) => (
