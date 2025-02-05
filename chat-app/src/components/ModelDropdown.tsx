@@ -8,7 +8,7 @@ export default function ModelDropdown({ onModelSelect }: ModelDropdownProps) {
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const [models, setModels] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null | any>(null);
 
   useEffect(() => {
     const fetchModels = async () => {
@@ -29,6 +29,28 @@ export default function ModelDropdown({ onModelSelect }: ModelDropdownProps) {
 
     fetchModels();
   }, []); // Only run once when component mounts
+
+  async function getOllamaModels(): Promise<string[]> {
+    try {
+      const isLocalhost = window.location.hostname === "localhost";
+      const response = await fetch(isLocalhost ? "http://localhost:11434/api/tags" : import.meta.env.VITE_SERVER_URL + "/models");
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      if (isLocalhost) {
+        const data = (await response.json()) as { models: OllamaModel[] };
+        return data.models.map(model => model.name);
+      } else {
+        const data = (await response.json()) as { data: { id: string }[] };
+        return data.data.map(model => model.id as string);
+      }
+    } catch (error) {
+      console.error("Error fetching Ollama models:", error);
+      throw error;
+    }
+  }
 
   if (loading) return <div className='my-2'>Loading models...</div>;
   if (error) return <div className='my-2 text-red-500'>Error: {error}</div>;
@@ -61,22 +83,4 @@ interface OllamaModel {
   modified_at: string;
   size: number;
   digest: string;
-}
-
-async function getOllamaModels(): Promise<string[]> {
-  try {
-    const response = await fetch("http://localhost:11434/api/tags");
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = (await response.json()) as { models: OllamaModel[] };
-
-    // Extract just the names from the models array
-    return data.models.map(model => model.name);
-  } catch (error) {
-    console.error("Error fetching Ollama models:", error);
-    throw error;
-  }
 }

@@ -111,6 +111,21 @@ app.post("/chat", async (req, res) => {
   }
 });
 
+/**
+ * GET /models
+ * Sends a request to the Ollama API to get the list of available models.
+ */
+app.get("/models", async (req, res) => {
+  try {
+    const response = await fetch("http://localhost:11434/v1/models");
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    console.error("Error contacting Ollama server:", err);
+    res.status(500).json({ error: err.toString() });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
