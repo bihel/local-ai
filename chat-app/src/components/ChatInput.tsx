@@ -1,3 +1,4 @@
+import { PaperAirplaneIcon } from "@heroicons/react/16/solid";
 import { useState, useRef, useEffect } from "react";
 
 export interface ChatInputProps {
@@ -41,10 +42,10 @@ const ChatInput = ({ disabled, onSend }: ChatInputProps) => {
   };
 
   return (
-    <div className='flex items-start rounded-3xl bg-gray-800 space-x-8 w-full p-3'>
+    <div className='flex items-start rounded-3xl bg-gray-800 w-full p-3'>
       <textarea
         ref={textareaRef}
-        className='max-h-30 flex-1 resize-none overflow-y-auto p-3 rounded-xl bg-gray-800 border border-gray-600 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 field-sizing-content disabled:bg-gray-700 disabled:cursor-not-allowed transition-colors'
+        className='max-h-30 flex-1 resize-none overflow-y-auto p-3 rounded-xl text-gray-200 focus:outline-none field-sizing-content disabled:bg-gray-700 disabled:cursor-not-allowed transition-colors'
         placeholder='Type your message...'
         value={message}
         onChange={e => setMessage(e.target.value)}
@@ -52,11 +53,10 @@ const ChatInput = ({ disabled, onSend }: ChatInputProps) => {
         disabled={disabled}
         rows={1}
       />
-      <button
-        className='px-6 py-3 bg-blue-500 text-white rounded-xl shadow hover:bg-blue-600 transition-colors disabled:bg-gray-700 disabled:cursor-not-allowed'
-        disabled={disabled}
-        onClick={handleSend}>
-        Send
+      <button className='ml-2 bg-gray-600 flex self-end rounded-full disabled:cursor-not-allowed' disabled={disabled} onClick={handleSend}>
+        <div className='p-2'>
+          <PaperAirplaneIcon className='w-6 h-6 text-gray-200' />
+        </div>
       </button>
     </div>
   );
