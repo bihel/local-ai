@@ -5,6 +5,7 @@ import BotContent from "./components/BotContent";
 import MarkdownRenderer from "./components/MarkdownRenderer";
 import ModelDropdown from "./components/ModelDropdown";
 import ChatInput from "./components/ChatInput";
+import CopyCode from "./components/CopyCode";
 import logo from "./assets/vlad-chat.jpg";
 
 function App() {
@@ -157,6 +158,7 @@ function App() {
     setSelectedModel(model);
   };
 
+
   return (
     <div className='min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center p-6'>
       <div className='flex space-x-8'>
@@ -180,6 +182,7 @@ function App() {
                   ) : (
                     <MarkdownRenderer>{msg.content}</MarkdownRenderer>
                   )}
+                  <CopyCode />
                 </div>
               </div>
             </div>
