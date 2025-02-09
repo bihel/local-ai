@@ -158,7 +158,6 @@ function App() {
     setSelectedModel(model);
   };
 
-
   return (
     <div className='min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center p-6'>
       <div className='flex space-x-8'>
