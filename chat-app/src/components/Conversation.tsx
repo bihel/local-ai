@@ -5,6 +5,7 @@ import BotContent from "./BotContent";
 import LoadingChat from "./LoadingChat";
 import { Chat, ChatCompletionChunk, Message } from "../models";
 import { addNewChat, getChatById, updateChat } from "../utils/chatHistory";
+import CopyCode from "./CopyCode";
 
 function Conversation({ chatId, model, onUpdateChatName }: { chatId: string; model: string; onUpdateChatName: () => void }) {
   const [chat, setChat] = useState<Chat | undefined>(undefined);
@@ -238,6 +239,7 @@ function Conversation({ chatId, model, onUpdateChatName }: { chatId: string; mod
               <div className='font-bold mb-1'>{msg.role === "user" ? "You" : "Bot"}</div>
               <div>
                 {msg.role === "bot" ? msg.loading ? <LoadingChat /> : <BotContent content={msg.content} /> : <MarkdownRenderer>{msg.content}</MarkdownRenderer>}
+                <CopyCode />
               </div>
             </div>
           </div>
