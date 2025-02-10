@@ -39,44 +39,73 @@ function Conversation({ chatId, model, onUpdateChatName }: { chatId: string; mod
   };
 
   const createNameForChat = async (input: string, isLocalhost: boolean) => {
-    const prompt =
-      "Create a short rememberable name for this chat with a little slavic twist. Only respond with the name and nothing else. The context of the chat is: " +
-      input;
-    let newName = "";
-    if (isLocalhost) {
-      const body = JSON.stringify({ model: model, prompt: prompt, stream: false });
-      const response = await fetch("http://localhost:11434/api/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: body,
-      });
-      const data = await response.json();
-      newName = data.response;
-    } else {
-      const body = JSON.stringify({ message: prompt });
-      const response = await fetch(import.meta.env.VITE_SERVER_URL + "/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
-        body: body,
-      });
-      const data = await response.json();
-      newName = data.choices[0].text;
-    }
+    try {
+      const prompt =
+        "Create a short rememberable name for this chat with a little slavic twist. Only respond with the name and nothing else. The context of the chat is: " +
+        input;
+      let newName = "";
+      
+      if (isLocalhost) {
+        const body = JSON.stringify({ model: model, prompt: prompt, stream: false });
+        const response = await fetch("http://localhost:11434/api/generate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: body,
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (!data.response) {
+          throw new Error("No response received from local API");
+        }
+        newName = data.response;
+      } else {
+        const body = JSON.stringify({ message: prompt, model: model });
+        const response = await fetch(import.meta.env.VITE_SERVER_URL + "/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+          body: body,
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (!data.choices?.[0]?.message?.content) {
+          throw new Error("No valid response received from server");
+        }
+        newName = data.choices[0].message.content;
+      }
 
-    setChat(prev => {
-      if (!prev) return prev;
-      const nameWithoutThink = newName.replace(/<think>[\s\S]*?<\/think>\s*/g, "").trim();
-      const updated = { ...prev };
-      updated.name = nameWithoutThink;
-      updateChat(updated);
-      onUpdateChatName();
-      return updated;
-    });
+      if (!newName) {
+        throw new Error("Failed to generate chat name");
+      }
+
+      setChat(prev => {
+        if (!prev) return prev;
+        const nameWithoutThink = newName.replace(/<think>[\s\S]*?<\/think>\s*/g, "").trim();
+        const updated = { ...prev };
+        updated.name = nameWithoutThink || "New Chat";
+        updateChat(updated);
+        onUpdateChatName();
+        return updated;
+      });
+    } catch (error) {
+      console.error("Error creating chat name:", error);
+      setChat(prev => {
+        if (!prev) return prev;
+        const updated = { ...prev };
+        updated.name = "New Chat";
+        updateChat(updated);
+        onUpdateChatName();
+        return updated;
+      });
+    }
   };
 
   const sendMessageStream = async (input: string) => {
@@ -105,12 +134,12 @@ function Conversation({ chatId, model, onUpdateChatName }: { chatId: string; mod
     });
 
     if (!isLocalhost) {
-      const body = JSON.stringify({ message: trimmed });
+      const body = JSON.stringify({ message: trimmed, model: model });
       await sendMessageViaMiddlemanStream(body);
     } else {
       const body = JSON.stringify({
         model: model,
-        prompt: trimmed,
+        prompt: JSON.stringify(chat.messages),
         stream: true,
       });
       await sendMessageDirectlyStream(body);

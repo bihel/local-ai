@@ -26,12 +26,12 @@ app.use(
  * Streams the conversation with Ollama.
  */
 app.post("/chat-stream", async (req, res) => {
-  const { message } = req.body;
+  const { message, model } = req.body;
 
   res.setHeader("Content-Type", "text/plain");
 
   const payload = {
-    model: "deepseek-r1:14b",
+    model: model || "deepseek-r1:14b", // Use provided model or fallback to default
     stream: true,
     messages: [{ role: "user", content: message }],
   };
@@ -80,7 +80,7 @@ app.post("/chat-stream", async (req, res) => {
  * Sends the message to the Ollama API and returns the response.
  */
 app.post("/chat", async (req, res) => {
-  const { message } = req.body;
+  const { message, model } = req.body;
   try {
     // Initialize the conversation history in the session if not present
     if (!req.session.chatHistory) {
@@ -91,7 +91,7 @@ app.post("/chat", async (req, res) => {
     req.session.chatHistory.push({ role: "user", content: message });
 
     const ollamaPayload = {
-      model: "deepseek-r1:14b", // Change this to your model's name if needed
+      model: model || "deepseek-r1:14b", // Use provided model or fallback to default
       messages: req.session.chatHistory,
     };
 
