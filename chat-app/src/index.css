@@ -8,23 +8,7 @@
   animation-delay: 400ms;
 }
 
-/* Add the "Copy Code" text */
-.copy-btn {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 4px 8px;
-  font-size: 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.3s ease-in-out;
-}
-
-/* Show button when hovering over code block */
+/* Show copy button on code block hover */
 .hljs:hover .copy-btn {
   opacity: 1;
 }

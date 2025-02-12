@@ -8,11 +8,14 @@ function CopyCode() {
                 // Avoid adding multiple buttons
                 if (block.querySelector(".copy-btn")) return;
 
+                // Skip if block already has a copy button
+                if (block.querySelector(".copy-btn")) return;
+
                 // Create button
                 const button = document.createElement("button");
                 button.textContent = "Copy Code";
-                button.classList.add("copy-btn");
-
+                button.className = "copy-btn absolute top-2 right-2 bg-black/70 text-white px-2 py-1 text-xs rounded cursor-pointer opacity-0 transition-opacity duration-300";
+                
                 // Copy logic
                 button.addEventListener("click", async () => {
                     try {
